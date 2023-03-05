@@ -37,8 +37,8 @@ def imb_pipe_fit(model, params, X, y, score='roc_auc', scaler=False):
                                      ['model', model]]
                             )
         
-    folds = RepeatedStratifiedKFold(n_splits=2, 
-                                    n_repeats=1,
+    folds = RepeatedStratifiedKFold(n_splits=5, 
+                                    n_repeats=2,
                                     random_state=421
                                     )   
     
@@ -54,6 +54,6 @@ def imb_pipe_fit(model, params, X, y, score='roc_auc', scaler=False):
     gs.fit(X_train, y_train)
     cv_score = gs.best_score_
     test_score = gs.score(X_test, y_test)
-    joblib.dump(gs, f"{type(model).__name__}.pkl")
+    joblib.dump(gs, f"models/{type(model).__name__}.pkl")
 
     return {'model':gs, 'cv_score':cv_score, 'test_score':test_score, 'best_param':gs.best_params_, "cv_results":gs.cv_results_}
