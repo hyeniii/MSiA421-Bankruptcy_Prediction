@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 
-def imb_pipe_fit(model, params, X, y, score='roc_auc', scaler=StandardScaler()):
+def imb_pipe_fit(model, params, X, y, score='roc_auc', scaler=False):
     """
     utilize imblearn to create pipeline(smote->scale->model) and do gridsearch on model
     @params: model to fit,
@@ -22,27 +22,34 @@ def imb_pipe_fit(model, params, X, y, score='roc_auc', scaler=StandardScaler()):
                                                         y,
                                                         test_size=0.2,
                                                         stratify=y,
-                                                        random_state=421)
+                                                        shuffle=True,
+                                                        random_state=421
+                                                        )
 
-    pipeline = Pipeline(steps = [['smote', SMOTE(random_state=421)],
-                                 ['scaler', scaler],
-                                 ['model', model]]
-                        )
-
+    if scaler:
+        pipeline = Pipeline(steps = [['smote', SMOTE(random_state=421)],
+                                     ['scaler', scaler],
+                                     ['model', model]]
+                            )
+    else:
+        pipeline = Pipeline(steps = [['smote', SMOTE(random_state=421)],
+                                     ['model', model]]
+                            )
+        
     folds = RepeatedStratifiedKFold(n_splits=10, 
-                                               n_repeat=5,
-                                               shuffle=True,
-                                               random_state=421
-                                               )   
+                                    n_repeats=10,
+                                    random_state=421
+                                    )   
     
     gs = GridSearchCV(estimator=pipeline,
-                               param_grid=params,
-                               scoring=str(score),
-                               cv=folds,
-                               refit=True,
-                               n_jobs=-1)
+                      param_grid=params,
+                      scoring=str(score),
+                      cv=folds,
+                      refit=True,
+                      n_jobs=-1
+                     )
     
     gs.fit(X_train, y_train)
     cv_score = gs.best_score_
     test_score = gs.score(X_test, y_test)
-    return {'model':gs, 'cv_score':cv_score, 'test_score':test_score}
+    return {'model':gs, 'cv_score':cv_score, 'test_score':test_score, 'best_param':gs.best_params_, "cv_results":gs.cv_results_}
