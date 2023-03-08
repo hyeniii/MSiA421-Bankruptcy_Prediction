@@ -50,6 +50,7 @@ def imb_pipe_fit(model, params,data_name, X, y, score='roc_auc', scaler=False):
                       n_jobs=-1,
                       verbose=False
                      )
+    
     print("fitting model...")
     gs.fit(X_train, y_train)
     cv_score = gs.best_score_
